@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PassionFroid DAM — Importer</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--red:#C8102E;--red-d:#8B0A1E;--gold:#D4A017;--dark:#1A1A2E;--light:#F7F4EF;--white:#fff;--gray:#6B7280;--border:#E5DDD3;--th:64px;--r:12px;--sh:0 2px 10px rgba(0,0,0,.08);--shm:0 10px 30px rgba(0,0,0,.14)}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:#F0EBE4}
+.top{position:fixed;top:0;left:0;right:0;height:var(--th);background:var(--dark);display:flex;align-items:center;padding:0 20px;z-index:200;gap:16px;box-shadow:0 2px 20px rgba(0,0,0,.3)}
+.tlogo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.tlogo-icon{width:36px;height:36px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.tlogo-name{font-family:'Playfair Display',serif;font-size:16px;color:#fff;font-weight:700}
+.tlogo-tag{font-size:10px;background:rgba(255,255,255,.13);color:rgba(255,255,255,.65);padding:2px 8px;border-radius:20px;letter-spacing:.1em;text-transform:uppercase}
+.tnav{display:flex;align-items:center;gap:2px;margin-left:14px}
+.tlink{color:rgba(255,255,255,.55);text-decoration:none;font-size:13px;font-weight:500;padding:6px 12px;border-radius:8px;transition:.2s;display:flex;align-items:center;gap:6px}
+.tlink:hover{background:rgba(255,255,255,.09);color:#fff}.tlink.on{background:rgba(200,16,46,.3);color:#fff}
+.tright{margin-left:auto;display:flex;align-items:center;gap:10px}
+.uchip{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.09);border-radius:50px;padding:4px 12px 4px 4px;cursor:pointer}
+.uav{width:26px;height:26px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--dark)}
+.uname{font-size:12px;color:#fff;font-weight:600}.urole{font-size:10px;color:rgba(255,255,255,.45)}
+.wrap{padding-top:var(--th);max-width:1100px;margin:0 auto;padding:calc(var(--th) + 24px) 28px 60px}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.ptitle{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--dark);margin-bottom:4px}
+.psub{font-size:13px;color:var(--gray)}
+.pill{display:flex;align-items:center;gap:6px;background:#EFF6FF;border:1px solid #BFDBFE;padding:7px 14px;border-radius:50px;font-size:12px;color:#1D4ED8;font-weight:600}
+.adot{width:6px;height:6px;background:#3B82F6;border-radius:50%;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+.steps{display:flex;align-items:center;background:var(--white);border-radius:var(--r);padding:16px 20px;margin-bottom:20px;box-shadow:var(--sh)}
+.step{display:flex;align-items:center;gap:10px;flex:1}
+.sn{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.step.done .sn{background:#22C55E;color:#fff}.step.active .sn{background:var(--red);color:#fff}.step.wait .sn{background:#F3F4F6;color:var(--gray)}
+.sl{font-size:13px;font-weight:600;color:var(--dark)}.step.wait .sl{color:var(--gray)}.sd{font-size:10px;color:var(--gray)}
+.sc{height:2px;flex:0 0 32px;background:#E5E7EB;margin:0 3px}.sc.done{background:#22C55E}
+
+.dz{border:2.5px dashed var(--border);border-radius:14px;background:var(--white);padding:44px 36px;text-align:center;cursor:pointer;transition:all .22s;margin-bottom:20px}
+.dz:hover,.dz.over{border-color:var(--red);background:rgba(200,16,46,.025)}
+.dz-icon{width:56px;height:56px;background:var(--light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:var(--red)}
+.dz-title{font-size:18px;font-weight:700;color:var(--dark);margin-bottom:7px}
+.dz-sub{font-size:13px;color:var(--gray);line-height:1.6;margin-bottom:18px}
+.dz-btns{display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-red{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;background:var(--red);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+.btn-red:hover{background:var(--red-d)}
+.btn-out{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;background:var(--white);color:var(--dark);border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:.2s}
+.btn-out:hover{border-color:var(--dark)}
+.fmt-row{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:6px}
+.fmt{padding:2px 9px;background:var(--light);border-radius:6px;font-size:10px;font-weight:700;color:var(--gray)}
+
+.prog{background:var(--white);border-radius:var(--r);padding:20px;box-shadow:var(--sh);margin-bottom:20px}
+.prog-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.prog-title{font-size:14px;font-weight:700;color:var(--dark)}.prog-cnt{font-size:13px;color:var(--gray)}
+.prog-bar{height:10px;background:#E5E7EB;border-radius:5px;overflow:hidden;margin-bottom:10px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--red),#FF6B6B);border-radius:5px;transition:width .5s}
+.prog-stats{display:flex;gap:18px}
+.ps{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray)}
+.psdot{width:7px;height:7px;border-radius:50%}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.panel{background:var(--white);border-radius:var(--r);padding:20px;box-shadow:var(--sh)}
+.panel-title{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.pcnt{background:#F3F4F6;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;color:var(--dark)}
+
+/* ── PREVIEW GRID — images libres droits en cover ── */
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pc{
+  position:relative;border-radius:9px;overflow:hidden;
+  aspect-ratio:1;cursor:pointer;
+  background:#f0ebe4;
+}
+.pc img{
+  width:100%;height:100%;
+  object-fit:cover;       /* cover → bien visible */
+  object-position:center;
+  display:block;
+  transition:transform .22s;
+}
+.pc:hover img{transform:scale(1.07)}
+.pc:hover{outline:2px solid var(--red)}
+.pdel{position:absolute;top:5px;right:5px;width:22px;height:22px;background:rgba(26,26,46,.7);color:#fff;border:none;border-radius:50%;cursor:pointer;font-size:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:.18s;z-index:5}
+.pc:hover .pdel{opacity:1}
+.pp{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(0,0,0,.15)}
+.ppb{height:100%;border-radius:3px;transition:width .5s}
+.ppb.done{background:#22C55E}.ppb.proc{background:#3B82F6}.ppb.wait{background:rgba(255,255,255,.3)}
+.pst{position:absolute;bottom:5px;left:5px;padding:2px 6px;border-radius:6px;font-size:8px;font-weight:700;text-transform:uppercase;z-index:5}
+.st-done{background:rgba(34,197,94,.88);color:#fff}
+.st-proc{background:rgba(59,130,246,.88);color:#fff}
+.st-wait{background:rgba(0,0,0,.5);color:rgba(255,255,255,.8)}
+.pc-cat{position:absolute;top:5px;left:5px;padding:2px 6px;border-radius:5px;font-size:8px;font-weight:800;text-transform:uppercase;z-index:5;background:rgba(26,26,46,.6);color:#fff;backdrop-filter:blur(3px)}
+
+/* AI panel */
+.ai-hd{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.ai-av{width:36px;height:36px;background:linear-gradient(135deg,#1D4ED8,#60A5FA);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ai-title{font-size:13px;font-weight:700;color:var(--dark)}.ai-sub{font-size:11px;color:var(--gray)}
+/* Selected preview — image bien visible */
+.sel-prev{display:flex;gap:10px;margin-bottom:14px;align-items:flex-start}
+.sel-img{width:110px;height:85px;border-radius:9px;object-fit:cover;border:1px solid var(--border);flex-shrink:0}
+.sel-name{font-size:12px;font-weight:600;color:var(--dark);margin-bottom:2px}.sel-meta{font-size:10px;color:var(--gray)}
+.conf-row{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.conf-l{font-size:11px;color:var(--gray);width:100px;flex-shrink:0}
+.conf-bar{flex:1;height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden}
+.conf-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--dark),#4B5563);transition:width 1s}
+.conf-pct{font-size:11px;font-weight:700;color:var(--dark);width:32px;text-align:right;flex-shrink:0}
+.te{margin-top:12px}.te-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dark);margin-bottom:6px}
+.te-wrap{display:flex;flex-wrap:wrap;gap:4px;padding:8px;border:1.5px solid var(--border);border-radius:8px;min-height:40px;cursor:text}
+.tc-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:16px;font-size:11px;font-weight:500}
+.tc-ai{background:#EFF6FF;color:#1D4ED8}.tc-man{background:#FFF7ED;color:#C2410C}
+.tc-chip button{background:none;border:none;cursor:pointer;font-size:11px;line-height:1;color:currentColor;opacity:.6;padding:0}.tc-chip button:hover{opacity:1}
+.tc-in{border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--dark);min-width:80px;flex:1;background:transparent}
+.mf{margin-top:12px}
+.mf-field{margin-bottom:10px}
+.mf-label{font-size:11px;font-weight:600;color:var(--dark);margin-bottom:4px;display:block}
+.mf-sel,.mf-inp{width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--dark);background:var(--white);outline:none}
+.mf-sel:focus,.mf-inp:focus{border-color:var(--red)}
+
+.sub-bar{display:flex;align-items:center;justify-content:space-between;background:var(--white);border-radius:var(--r);padding:16px 20px;box-shadow:var(--sh)}
+.sub-info{font-size:13px;color:var(--gray)}.sub-info strong{color:var(--dark)}
+.sub-acts{display:flex;gap:10px}
+.btn-cancel{padding:9px 16px;background:var(--white);color:var(--dark);border:2px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer}
+.btn-pub{padding:9px 22px;background:var(--red);color:#fff;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-pub:hover{background:var(--red-d)}
+
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+.modal.on{display:flex}
+.mbox{background:#fff;border-radius:16px;padding:40px;text-align:center;max-width:360px;width:90%;animation:popIn .3s ease}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.mbox-icon{width:60px;height:60px;background:#D1FAE5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:#059669}
+.mbox-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--dark);margin-bottom:7px}
+.mbox-sub{font-size:13px;color:var(--gray);line-height:1.6;margin-bottom:20px}
+.mbox-btn{padding:10px 24px;background:var(--red);color:#fff;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+
+.toast{position:fixed;bottom:28px;right:28px;background:var(--dark);color:#fff;padding:12px 16px;border-radius:10px;font-size:12px;font-weight:500;opacity:0;transform:translateY(12px);transition:.28s;z-index:500;box-shadow:var(--shm)}
+.toast.on{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<header class="top">
+  <a href="01_login.html" class="tlogo">
+    <div class="tlogo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93 4.93 19.07"/></svg></div>
+    <span class="tlogo-name">PassionFroid</span><span class="tlogo-tag">DAM</span>
+  </a>
+  <nav class="tnav">
+    <a href="02_search.html" class="tlink"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Recherche</a>
+    <a href="03_upload.html" class="tlink on"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Importer</a>
+    <a href="04_admin.html" class="tlink"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Admin</a>
+  </nav>
+  <div class="tright">
+    <div class="uchip"><div class="uav">JD</div><div><div class="uname">Jean D.</div><div class="urole">Mktg National</div></div></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="ph">
+    <div><div class="ptitle">Importer des photos</div><div class="psub">Glissez vos fichiers — l'analyse IA se lance automatiquement</div></div>
+    <div class="pill"><div class="adot"></div>Analyse IA • Tagging auto</div>
+  </div>
+  <div class="steps">
+    <div class="step done"><div class="sn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="sl">Sélection</div><div class="sd">12 fichiers prêts</div></div></div>
+    <div class="sc done"></div>
+    <div class="step active"><div class="sn">2</div><div><div class="sl">Analyse IA</div><div class="sd">Tagging en cours…</div></div></div>
+    <div class="sc"></div>
+    <div class="step wait"><div class="sn">3</div><div><div class="sl">Métadonnées</div><div class="sd">Vérifier</div></div></div>
+    <div class="sc"></div>
+    <div class="step wait"><div class="sn">4</div><div><div class="sl">Publication</div><div class="sd">Médiathèque</div></div></div>
+  </div>
+  <div class="dz" id="dz" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="onDrop(event)">
+    <div class="dz-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+    <div class="dz-title">Glissez vos photos ici</div>
+    <div class="dz-sub">L'IA analyse automatiquement tags, personnes, ambiances et catégories</div>
+    <div class="dz-btns">
+      <button class="btn-red" onclick="toast('Sélecteur de fichiers ouvert…')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Choisir des fichiers</button>
+      <button class="btn-out" onclick="toast('Connexion stockage cloud…')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>Stockage cloud</button>
+    </div>
+    <div class="fmt-row"><span style="font-size:10px;color:var(--gray)">Formats :</span><span class="fmt">JPG</span><span class="fmt">PNG</span><span class="fmt">WEBP</span><span class="fmt">TIFF</span><span class="fmt">MP4</span></div>
+  </div>
+  <div class="prog">
+    <div class="prog-hd"><div class="prog-title">Progression</div><div class="prog-cnt"><strong id="dn">8</strong> / 12 analysées</div></div>
+    <div class="prog-bar"><div class="prog-fill" id="pf" style="width:66%"></div></div>
+    <div class="prog-stats"><div class="ps"><div class="psdot" style="background:#22C55E"></div>8 OK</div><div class="ps"><div class="psdot" style="background:#3B82F6"></div>1 cours</div><div class="ps"><div class="psdot" style="background:#E5E7EB"></div>3 attente</div></div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <div class="panel-title">Fichiers importés <span class="pcnt">12</span></div>
+      <div class="pgrid" id="pgrid"></div>
+    </div>
+    <div class="panel">
+      <div class="ai-hd">
+        <div class="ai-av"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+        <div><div class="ai-title">Analyse en cours</div><div class="ai-sub">côte_boeuf_restaurant.jpg</div></div>
+      </div>
+      <!-- Image sélectionnée bien visible -->
+      <div class="sel-prev">
+        <img class="sel-img" src="https://images.unsplash.com/photo-1544025162-d76694265947?w=300&q=80" alt="côte de bœuf">
+        <div>
+          <div class="sel-name">côte_boeuf_restaurant.jpg</div>
+          <div class="sel-meta">Le Boucher du Chef · 4.1 MB · JPG</div>
+          <div class="sel-meta" style="margin-top:4px">4032 × 3024 px</div>
+        </div>
+      </div>
+      <div class="conf-row"><div class="conf-l">Viande / Bœuf</div><div class="conf-bar"><div class="conf-fill" style="width:96%"></div></div><div class="conf-pct">96%</div></div>
+      <div class="conf-row"><div class="conf-l">Grill / Cuisson</div><div class="conf-bar"><div class="conf-fill" style="width:91%"></div></div><div class="conf-pct">91%</div></div>
+      <div class="conf-row"><div class="conf-l">Restaurant</div><div class="conf-bar"><div class="conf-fill" style="width:84%"></div></div><div class="conf-pct">84%</div></div>
+      <div class="conf-row"><div class="conf-l">Gastronomique</div><div class="conf-bar"><div class="conf-fill" style="width:77%"></div></div><div class="conf-pct">77%</div></div>
+      <div class="conf-row"><div class="conf-l">VBF</div><div class="conf-bar"><div class="conf-fill" style="width:65%"></div></div><div class="conf-pct">65%</div></div>
+      <div class="te">
+        <div class="te-label">Tags générés</div>
+        <div class="te-wrap" id="tw" onclick="document.getElementById('ti').focus()">
+          <span class="tc-chip tc-ai">Viande <button onclick="this.parentElement.remove()">×</button></span>
+          <span class="tc-chip tc-ai">Bœuf <button onclick="this.parentElement.remove()">×</button></span>
+          <span class="tc-chip tc-ai">Grill <button onclick="this.parentElement.remove()">×</button></span>
+          <span class="tc-chip tc-ai">Restaurant <button onclick="this.parentElement.remove()">×</button></span>
+          <span class="tc-chip tc-man">VBF France <button onclick="this.parentElement.remove()">×</button></span>
+          <input type="text" class="tc-in" id="ti" placeholder="+ Tag…" onkeydown="addTag(event)">
+        </div>
+      </div>
+      <div class="mf">
+        <div class="mf-field"><label class="mf-label">Cible client</label><select class="mf-sel"><option>Restauration gastronomique</option><option>Brasserie</option><option>Traiteur</option></select></div>
+        <div class="mf-field"><label class="mf-label">Région</label><select class="mf-sel"><option>Toutes les régions</option><option>Île-de-France</option><option>PACA</option></select></div>
+        <div class="mf-field"><label class="mf-label">Saison</label><input type="text" class="mf-inp" value="Printemps 2024"></div>
+      </div>
+    </div>
+  </div>
+  <div class="sub-bar">
+    <div class="sub-info"><strong>12 photos</strong> prêtes à publier<br><span>Tags IA indexés pour la recherche</span></div>
+    <div class="sub-acts">
+      <button class="btn-cancel" onclick="window.location='02_search.html'">Annuler</button>
+      <button class="btn-pub" onclick="publish()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>Publier dans la médiathèque</button>
+    </div>
+  </div>
+</div>
+<div class="modal" id="modal">
+  <div class="mbox">
+    <div class="mbox-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="mbox-title">Photos publiées !</div>
+    <div class="mbox-sub">12 photos analysées et publiées dans la médiathèque PassionFroid. Disponibles pour toutes les équipes marketing régionales.</div>
+    <button class="mbox-btn" onclick="window.location='02_search.html'">Voir la médiathèque →</button>
+  </div>
+</div>
+<div class="toast" id="t"></div>
+
+<script>
+// Images libres droits Unsplash — toutes les 12 photos culinaires
+const PREV=[
+  {img:'https://images.unsplash.com/photo-1544025162-d76694265947?w=300&q=80',cat:'Viande',s:'done',p:100},
+  {img:'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=300&q=80',cat:'Poisson',s:'done',p:100},
+  {img:'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=300&q=80',cat:'Dessert',s:'done',p:100},
+  {img:'https://images.unsplash.com/photo-1452195100486-9cc7a1b38428?w=300&q=80',cat:'Fromage',s:'done',p:100},
+  {img:'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=300&q=80',cat:'Légumes',s:'done',p:100},
+  {img:'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=300&q=80',cat:'Poisson',s:'done',p:100},
+  {img:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80',cat:'Burger',s:'done',p:100},
+  {img:'https://images.unsplash.com/photo-1598103442097-8b74394b95c3?w=300&q=80',cat:'Volaille',s:'done',p:100},
+  {img:'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=300&q=80',cat:'Dessert',s:'proc',p:72},
+  {img:'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=300&q=80',cat:'Charcut.',s:'wait',p:0},
+  {img:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300&q=80',cat:'Salade',s:'wait',p:0},
+  {img:'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=300&q=80',cat:'Dessert',s:'wait',p:0},
+];
+function renderPreviews(){
+  document.getElementById('pgrid').innerHTML=PREV.map((p,i)=>`
+    <div class="pc" onclick="selectPreview(${i})">
+      <div class="pc-cat">${p.cat}</div>
+      <img src="${p.img}" alt="preview" onerror="this.src='https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=300&q=80'">
+      <button class="pdel" onclick="event.stopPropagation()">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="pp"><div class="ppb ${p.s}" style="width:${p.p}%"></div></div>
+      <div class="pst st-${p.s}">${p.s==='done'?'✓ OK':p.s==='proc'?'Cours':'Attente'}</div>
+    </div>`).join('');
+}
+function selectPreview(i){toast('Photo '+(i+1)+' — '+PREV[i].cat+' — sélectionnée pour analyse');}
+function addTag(e){if(e.key==='Enter'&&e.target.value.trim()){const c=document.createElement('span');c.className='tc-chip tc-man';c.innerHTML=`${e.target.value.trim()} <button onclick="this.parentElement.remove()">×</button>`;document.getElementById('tw').insertBefore(c,e.target);e.target.value='';}}
+function publish(){toast('Publication en cours…');setTimeout(()=>document.getElementById('modal').classList.add('on'),1800);}
+function onDrop(e){e.preventDefault();document.getElementById('dz').classList.remove('over');toast('Fichiers détectés — analyse démarrée');}
+let prog=66;
+function tick(){if(prog<100){prog=Math.min(100,prog+Math.random()*2.2);document.getElementById('pf').style.width=prog+'%';document.getElementById('dn').textContent=Math.round(prog/100*12);}setTimeout(tick,1500);}
+function toast(msg){const t=document.getElementById('t');t.textContent=msg;t.classList.add('on');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('on'),3500);}
+renderPreviews();tick();
+</script>
+</body>
+</html>
